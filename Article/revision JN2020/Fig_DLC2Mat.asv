@@ -1,0 +1,154 @@
+close all, clear all 
+cd ('D:\DATA EMORY\JC_Analysis')
+load Table_DLC_vgat14w12d2.mat
+
+%%
+close all
+figure, hold on, 
+subplot(3,1,1), plot(allTab.NoseX); hold on; plot(allTab.NoseY); title('NoseX')
+subplot(3,1,2), plot(allTab.MouthX); hold on; plot(allTab.MouthY); title('MouthX')
+subplot(3,1,3),  plot(allTab.TongueProba,'r'); title('TongueProba')
+
+figure, hold on, 
+plot(allTab.NoseY, 'b'); 
+plot(allTab.MouthY, 'g')
+plot(allTab.TongueProba*100,'r')
+legend('NoseY','MouthY','TongueProba')
+
+figure, hold on, 
+plot(allTab.TongueProba*100,'r')
+plot(allTab.TongueY,'c')
+legend('Tongue proba', 'TongueY' )
+
+%% average over trials (100 frames)
+NoseX_tr = allTab.NoseX(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    NoseX_tr = [NoseX_tr allTab.NoseX(itr*100:((itr+1)*100)-1)];
+end
+
+NoseY_tr = allTab.NoseY(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    NoseY_tr = [NoseY_tr allTab.NoseY(itr*100:((itr+1)*100)-1)];
+end
+
+MouthX_tr = allTab.MouthX(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    MouthX_tr = [MouthX_tr allTab.MouthX(itr*100:((itr+1)*100)-1)];
+end
+
+MouthY_tr = allTab.MouthY(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    MouthY_tr = [MouthY_tr allTab.MouthY(itr*100:((itr+1)*100)-1)];
+end
+
+TongueX_tr = allTab.TongueX(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    TongueX_tr = [TongueX_tr allTab.TongueX(itr*100:((itr+1)*100)-1)];
+end
+
+TongueY_tr = allTab.TongueY(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    TongueY_tr = [TongueY_tr allTab.TongueY(itr*100:((itr+1)*100)-1)];
+end
+
+TongueProba_tr = allTab.TongueProba(1:100)
+for itr = 1:(size(allTab,1)/100)-1
+    TongueProba_tr = [TongueProba_tr allTab.TongueProba(itr*100:((itr+1)*100)-1)];
+end
+
+
+%%
+VAR_DLC = TongueY_tr
+VARname_str = 'TongueY'
+Fig_Average_LvR_VAR_DLC(MouthY_tr, VAR_DLC, VARname_str)
+
+%% plot Average 
+figure, hold on, 
+plot(mean(TongueProba_tr,2)*100)
+plot(mean(TongueY_tr,2))
+plot(mean(TongueX_tr,2))
+legend('Tongue proba', 'TongueY', 'TongueX') 
+
+figure, hold on, 
+plot(mean(MouthY_tr,2))
+plot(mean(MouthX_tr,2))
+plot(mean(NoseY_tr,2))
+plot(mean(NoseX_tr,2))
+
+figure, hold on, 
+plot(allTab.NoseY, 'b'); 
+plot(allTab.NoseX*3,'c')
+plot(allTab.MouthY, 'g')
+plot(allTab.MouthX, 'y')
+legend('NoseY','NoseX','MouthY','MouthX')
+
+
+figure, hold on, 
+plot(allTab.NoseY, 'b'); 
+plot(allTab.MouthY, 'g')
+plot(allTab.TongueY, 'r')
+legend('NoseY','MouthY','TongueY')
+
+
+%% define Left Right Trial using MouthY
+close all 
+VAR=MouthY_tr;
+TITLE_EVT = 'MouthY'
+Thr = median(mean(VAR))
+
+figure, plot(VAR), hold on, plot(mean(VAR,2),'r','LineWidth',2) 
+
+AV=[]; 
+for itr=1:125
+idxT = find(TongueProba_tr(:,itr)>0.95);
+AV = [AV mean(VAR(idxT,itr))];
+end
+
+idxL = find(AV<Thr);
+idxR = find(AV>Thr);
+
+figure, hold on, 
+plot(mean(VAR(:,idxR),2),'b','LineWidth',2)
+plot(mean(VAR(:,idxL),2),'r','LineWidth',2)
+xline(1.5*25,'k--','LineWidth',2)
+
+plot(ones(1,100)*Thr,'k--')
+for ii=5:25
+plot(VAR(:,idxL(ii)),'m')
+plot(VAR(:,idxR(ii)),'c')
+end
+plot(mean(VAR(:,idxR),2),'b','LineWidth',2)
+plot(mean(VAR(:,idxL),2),'r','LineWidth',2)
+
+maxR=max(abs(mean(VAR(:,idxR)-Thr,2))) 
+maxL=max(abs(mean(VAR(:,idxL)-Thr,2)))
+ylim([Thr-max(maxL,maxR)-5 Thr+max(maxL,maxR)+5])
+
+legend('Right','Left','GoCue')
+title(TITLE_EVT)
+
+%% Plot VAR using idxL and idxR
+
+VAR=TongueY_tr;
+TITLE_EVT = 'TongueY'
+Thr = median(mean(VAR))
+
+figure, hold on, 
+plot(mean(VAR(:,idxR),2),'b','LineWidth',2)
+plot(mean(VAR(:,idxL),2),'r','LineWidth',2)
+xline(1.5*25,'k--','LineWidth',2)
+
+plot(ones(1,100)*Thr,'k--')
+for ii=5:25
+plot(VAR(:,idxL(ii)),'m')
+plot(VAR(:,idxR(ii)),'c')
+end
+plot(mean(VAR(:,idxR),2),'b','LineWidth',2)
+plot(mean(VAR(:,idxL),2),'r','LineWidth',2)
+
+maxR=max(abs(mean(VAR(:,idxR)-Thr,2))) 
+maxL=max(abs(mean(VAR(:,idxL)-Thr,2)))
+ylim([Thr-max(maxL,maxR)-5 Thr+max(maxL,maxR)+5])
+
+legend('Right','Left','GoCue')
+title(TITLE_EVT)
